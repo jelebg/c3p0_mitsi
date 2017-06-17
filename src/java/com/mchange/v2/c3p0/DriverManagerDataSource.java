@@ -53,6 +53,7 @@ import com.mchange.v2.log.MLog;
 import com.mchange.v2.log.MLogger;
 import com.mchange.v2.c3p0.cfg.C3P0Config;
 import com.mchange.v2.c3p0.impl.DriverManagerDataSourceBase;
+import java.lang.ClassLoader;
 
 public final class DriverManagerDataSource extends DriverManagerDataSourceBase implements DataSource
 {
@@ -81,6 +82,12 @@ public final class DriverManagerDataSource extends DriverManagerDataSourceBase i
     
     //MT: protected by this' lock
     boolean driver_class_loaded = false;
+	
+	ClassLoader customClassLoader = null;
+	
+	public void setCustomClassLoader(ClassLoader customClassLoader) {
+		this.customClassLoader = customClassLoader;
+	}
 
     public DriverManagerDataSource()
     { this( true ); }
@@ -139,8 +146,14 @@ public final class DriverManagerDataSource extends DriverManagerDataSourceBase i
         {
             if (! isDriverClassLoaded())
             {
-                if (driverClass != null)
-                    Class.forName( driverClass );
+                if (driverClass != null) {
+					if (customClassLoader != null) {
+						customClassLoader.loadClass( driverClass );
+					}
+					else {
+						Class.forName( driverClass );
+					}
+				}
                 setDriverClassLoaded( true );
             }
         }
@@ -275,7 +288,12 @@ public final class DriverManagerDataSource extends DriverManagerDataSourceBase i
 
 		try 
 		{ 
-		    driver = (Driver) Class.forName( driverClass ).newInstance();
+			if (customClassLoader != null) {
+				driver = (Driver) customClassLoader.loadClass( driverClass ).newInstance();
+			}
+			else {
+			    driver = (Driver) Class.forName( driverClass ).newInstance();
+			}
 		    this.setDriverClassLoaded( true );
 		}
 		catch (Exception e)

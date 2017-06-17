@@ -233,6 +233,11 @@ public abstract class AbstractComboPooledDataSource extends AbstractPoolBackedDa
     public String getDriverClass()
     { return dmds.getDriverClass(); }
 
+	public void setCustomClassLoader(ClassLoader customClassLoader) {
+		dmds.setCustomClassLoader(customClassLoader);
+	}
+
+	
     public void setDriverClass( String driverClass ) throws PropertyVetoException
     { 
         dmds.setDriverClass( driverClass ); 
